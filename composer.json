@@ -2,7 +2,8 @@
     "name": "romai/proto-xine",
     "type": "project",
     "require": {
-        "damianopetrungaro/php-commitizen": "^0.2.0"
+        "damianopetrungaro/php-commitizen": "^0.2.0",
+      "ext-pdo": "*"
     },
     "autoload": {
         "psr-4": {
