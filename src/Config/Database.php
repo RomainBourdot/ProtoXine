@@ -1,48 +1,35 @@
 <?php
 
-namespace Romai\ProtoXine\Config;
+namespace ProtoXine\App\Config;
 
 use PDO;
 use PDOException;
 
-class Database
-{
-    private $host;
-    private $db_name;
-    private $username;
-    private $password;
+class Database {
+    private static ?PDO $instance = null;
 
-    private static $instance = null;
-    public $conn;
+    private function __construct() {}
 
-    private function __construct() {
-        $this->host = $_ENV['DB_HOST'] ?? 'localhost';
-        $this->db_name = $_ENV['DB_NAME'] ?? 'protoxine';
-        $this->username = $_ENV['DB_USER'] ?? 'root';
-        $this->password = $_ENV['DB_PASS'] ?? '';
+    public static function getConnection(): PDO {
+        if (self::$instance === null) {
+            try {
+                $host = $_ENV['DB_HOST'] ?? 'localhost';
+                $db   = $_ENV['DB_NAME'] ?? 'protoxine';
+                $user = $_ENV['DB_USER'] ?? 'root';
+                $pass = $_ENV['DB_PASS'] ?? '';
 
-        try {
-            $dsn = "mysql:host=" . $this->host . ";dbname=" . $this->db_name;
-            $this->conn = new PDO($dsn, $this->username, $this->password);
-            $this->conn->exec("set names utf8");
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        } catch(PDOException $exception) {
-            die("Erreur de connexion : " . $exception->getMessage());
-        }
-    }
+                $dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
 
-    public static function getInstance(): ?Database
-    {
-        if (self::$instance == null) {
-            self::$instance = new Database();
+                self::$instance = new PDO($dsn, $user, $pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ]);
+            } catch (PDOException $e) {
+                // On changera en prod
+                die("Erreur de connexion SQL : " . $e->getMessage());
+            }
         }
         return self::$instance;
     }
-
-    public function getConnection(): PDO
-    {
-        return $this->conn;
-    }
-
 }
